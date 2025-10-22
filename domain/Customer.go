@@ -18,7 +18,10 @@ type CustomerRepository interface {
 	FindById(ctx context.Context, id int) (Customer, error)
 	Create(ctx context.Context, c *Customer) error
 	Update(ctx context.Context, c *Customer) error
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, id int) error
 }
 
 
+type CustomerService interface{
+	Index(ctx context.Context)([] dto.CustomerData, error)
+}
