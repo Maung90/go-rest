@@ -5,7 +5,7 @@ import "time"
 // User struct merepresentasikan tabel 'users' di database
 type User struct {
     ID        int       `json:"id"`
-    Username  string    `json:"username"`
+    Name      string    `json:"name"`
     Email     string    `json:"email"`
     Password  string    `json:"-"`
     CreatedAt time.Time `json:"created_at"`
@@ -14,12 +14,12 @@ type User struct {
 
 // Struct untuk menampung data input dari user
 type CreateUserInput struct {
-    Username string `json:"username" binding:"required"`
+    Name     string `json:"name" binding:"required"`
     Email    string `json:"email" binding:"required,email"`
     Password string `json:"password" binding:"required,min=6"`
 }
 
 type UpdateUserInput struct {
-    Username string `json:"username"`
+    Name  string `json:"name"`
     Email string `json:"email" binding:"email"`
 }

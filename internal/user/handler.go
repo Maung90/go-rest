@@ -45,7 +45,7 @@ func (h *Handler) CreateUser(c *gin.Context) {
 	// Perbaikan 2: Mapping dari DTO (input) ke Model (User)
 	// Service kita mengharapkan model User, bukan CreateUserInput
 	userModel := User{
-		Username:  input.Username,
+		Name:  input.Name,
 		Email: input.Email,
 		Password: input.Password,
 	}
@@ -75,7 +75,7 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 	}
 
 	// 2. Ubah field-nya dengan data dari input
-	existingUser.Username = input.Username
+	existingUser.Name = input.Name
 	existingUser.Email = input.Email
 
 	// 3. Kirim model yang sudah lengkap ke service

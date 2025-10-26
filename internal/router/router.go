@@ -1,19 +1,18 @@
 package router
 
 import (
-	"go-rest/internal/activity"
+	"go-rest/internal/habit"
+	"go-rest/internal/auth"
 	"go-rest/internal/user"
 
 	"github.com/gin-gonic/gin"
 )
 
-// Perbaikan 1: Tambahkan activityHandler sebagai parameter
-func SetupRouter(userHandler *user.Handler, activityHandler *activity.Handler) *gin.Engine {
+func SetupRouter(userHandler *user.Handler, habitHandler *habit.Handler, authHandler *auth.Handler) *gin.Engine {
 	router := gin.Default()
 
 	api := router.Group("/api/v1")
 
-	// Rute untuk User
 	userRoutes := api.Group("/users")
 	{
 		userRoutes.GET("/", userHandler.GetUsers)
@@ -23,16 +22,20 @@ func SetupRouter(userHandler *user.Handler, activityHandler *activity.Handler) *
 		userRoutes.DELETE("/:id", userHandler.DeleteUser)
 	}
 
-	// Perbaikan 2 & 3: Ubah komentar dan nama rute
-	// Rute untuk Activity
-	activityRoutes := api.Group("/activities") 
+	habitRoutes := api.Group("habits") 
 	{
-		activityRoutes.GET("/", activityHandler.GetActivitys)
-		activityRoutes.GET("/:id", activityHandler.GetActivity)
-		activityRoutes.POST("/", activityHandler.CreateActivity)
-		activityRoutes.PUT("/:id", activityHandler.UpdateActivity)
-		activityRoutes.DELETE("/:id", activityHandler.DeleteActivity)
+		habitRoutes.GET("/", habitHandler.GetHabits)
+		habitRoutes.GET("/:id", habitHandler.GetHabit)
+		habitRoutes.POST("/", habitHandler.CreateHabit)
+		habitRoutes.PUT("/:id", habitHandler.UpdateHabit)
+		habitRoutes.DELETE("/:id", habitHandler.DeleteHabit)
 	}
 
+	authRoutes := api.Group("auth") 
+	{
+		authRoutes.POST("/login", authHandler.Login)
+		authRoutes.POST("/register", authHandler.Register)
+		authRoutes.GET("/:email", authHandler.GetUserByEmail)
+	}
 	return router
 }

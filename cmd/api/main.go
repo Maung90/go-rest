@@ -1,10 +1,11 @@
 package main
 
 import (
-	"go-rest/internal/activity" // <-- Tambahkan import activity
 	"go-rest/internal/service"
 	"go-rest/internal/router"
+	"go-rest/internal/habit"
 	"go-rest/internal/user"
+	"go-rest/internal/auth"
 	"go-rest/pkg/database"
 	"log"
 
@@ -23,25 +24,21 @@ func main() {
 	}
 	defer db.Close()
 
-	// Inisialisasi Repository seperti biasa
 	userRepository := user.NewRepository(db)
-	activityRepository := activity.NewRepository(db)
+	habitRepository := habit.NewRepository(db)
+	authRepository := auth.NewRepository(db)
 
-	// Buat instance Generic Service untuk setiap model
-	// service.NewService[user.User](...) -> Membuat service khusus untuk tipe User
 	userService := service.NewService[user.User](userRepository)
-	// service.NewService[activity.Activity](...) -> Membuat service khusus untuk tipe Activity
-	activityService := service.NewService[activity.Activity](activityRepository)
+	authService := auth.NewService(authRepository)
+	habitService := service.NewService[habit.Habit](habitRepository)
 
-	// Inisialisasi Handler seperti biasa, tapi sekarang menerima Generic Service
 	userHandler := user.NewHandler(userService)
-	activityHandler := activity.NewHandler(activityService)
+	authHandler := auth.NewHandler(authService)
+	habitHandler := habit.NewHandler(habitService)
 
-	// 2. Setup router dengan menyertakan userHandler dan activityHandler
-	appRouter := router.SetupRouter(userHandler, activityHandler)
+	appRouter := router.SetupRouter(userHandler, habitHandler, authHandler)
 	
-	// ==============================================================
-
+	
 	log.Println("Starting server on :8080")
 	if err := appRouter.Run(":8080"); err != nil {
 		log.Fatalf("Could not start server: %v", err)
