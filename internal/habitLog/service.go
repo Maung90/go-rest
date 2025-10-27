@@ -3,7 +3,7 @@ import "time"
 
 type HabitLogService interface {
 	CreateLogs(input CreateHabitLogInput) (HabitLog, error)
-	FindHabitLogs(date string) ([]HabitLog, error)
+	FindHabitLogs(input GetHabitLogInput) ([]HabitLog, error)
 }
 
 type habitLogService struct {
@@ -28,7 +28,11 @@ func (s *habitLogService) CreateLogs(input CreateHabitLogInput) (HabitLog, error
 }
 
 
-func (s *habitLogService) FindHabitLogs(date string) ([]HabitLog, error) {
-		return s.repository.FindHabitLogs(date)
+func (s *habitLogService) FindHabitLogs(input GetHabitLogInput) ([]HabitLog, error) {
+	parsedDate, err := time.Parse("2006-01-02", input.LogDate)
+	if err != nil {
+		return []HabitLog{}, err
+	}
+		return s.repository.FindHabitLogs(parsedDate)
 }
 

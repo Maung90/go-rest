@@ -1,6 +1,7 @@
 package habitLog
 
 import (
+	"fmt"
 	"go-rest/internal/habit"
 	"go-rest/internal/service"
 	"net/http"
@@ -49,9 +50,14 @@ func (h *Handler) CreateLogs(c *gin.Context) {
 }
 
 func (h *Handler) GetLogsByDate(c *gin.Context) {
-	date := c.Param("date")
+	var input GetHabitLogInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	fmt.Println("DEBUG log_date:", input)
 
-	habitLogs, err := h.habitLogService.FindHabitLogs(date)
+	habitLogs, err := h.habitLogService.FindHabitLogs(input)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Habit Logs not found for that date"})
 		return

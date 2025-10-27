@@ -18,3 +18,7 @@ type CreateHabitLogInput struct {
 	LogDate  string    `json:"log_date" binding:"required"`
 }
  
+type GetHabitLogInput struct {
+	LogDate  string    `json:"log_date" binding:"required"`
+}
+ 

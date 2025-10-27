@@ -26,7 +26,7 @@ func SetupRouter(userHandler *user.Handler, habitHandler *habit.Handler, authHan
 	habitRoutes := api.Group("habits") 
 	{
 		habitRoutes.GET("/", habitHandler.GetHabits)
-		habitRoutes.GET("/history?:date", habitLogHandler.GetLogsByDate)
+		habitRoutes.POST("/history", habitLogHandler.GetLogsByDate)
 		habitRoutes.GET("/:id", habitHandler.GetHabit)
 		habitRoutes.POST("/", habitHandler.CreateHabit)
 		habitRoutes.POST("/:id/complete", habitLogHandler.CreateLogs)

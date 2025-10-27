@@ -7,7 +7,7 @@ import (
 
 type Repository interface {
 	CreateLogs(newHabitLog HabitLog) (HabitLog, error)
-	FindHabitLogs(date string) ([]HabitLog, error) 
+	FindHabitLogs(date time.Time) ([]HabitLog, error) 
 	FindByID(id int) (HabitLog, error) 
 }
 
@@ -56,11 +56,12 @@ func (r *repository) CreateLogs(newHabitLog HabitLog) (HabitLog, error) {
 	return r.FindByID(int(lastID))
 }
 
-func (r *repository) FindHabitLogs(date string) ([]HabitLog, error) {
+func (r *repository) FindHabitLogs(date time.Time) ([]HabitLog, error) {
 	var foundLogs []HabitLog
 
+	parseDate := date.Format("2006-01-02")
 	query := "SELECT id, habit_id, user_id, log_date, status, created_at, updated_at FROM habit_logs WHERE log_date = ?"
-	rows, err := r.db.Query(query, date)
+	rows, err := r.db.Query(query, parseDate)
 	if err != nil {
 		return nil, err
 	}
