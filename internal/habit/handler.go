@@ -64,7 +64,7 @@ func (h *Handler) UpdateHabit(c *gin.Context) {
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
-	}
+	} 
 
 	existingHabit, err := h.service.GetByID(id)
 	if err != nil {

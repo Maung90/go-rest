@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go-rest/internal/habitLog"
 	"go-rest/internal/service"
 	"go-rest/internal/router"
 	"go-rest/internal/habit"
@@ -27,16 +28,19 @@ func main() {
 	userRepository := user.NewRepository(db)
 	habitRepository := habit.NewRepository(db)
 	authRepository := auth.NewRepository(db)
+	habitLogRepository := habitLog.NewRepository(db)
 
-	userService := service.NewService[user.User](userRepository)
 	authService := auth.NewService(authRepository)
+	habitLogService := habitLog.NewHabitLogService(habitLogRepository)
+	userService := service.NewService[user.User](userRepository)
 	habitService := service.NewService[habit.Habit](habitRepository)
 
 	userHandler := user.NewHandler(userService)
 	authHandler := auth.NewHandler(authService)
+	habitLogHandler := habitLog.NewHandler(habitLogService, habitService)
 	habitHandler := habit.NewHandler(habitService)
 
-	appRouter := router.SetupRouter(userHandler, habitHandler, authHandler)
+	appRouter := router.SetupRouter(userHandler, habitHandler, authHandler, habitLogHandler)
 	
 	
 	log.Println("Starting server on :8080")

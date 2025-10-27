@@ -73,3 +73,12 @@ func (r *repository) Delete(id int) error {
     _, err := r.db.Exec("DELETE FROM habits WHERE id = ?", id)
     return err
 }
+
+func (r *repository) UpdateStatus(habit Habit) (Habit, error) {
+    query := "UPDATE habits SET user_id = ?, title = ?, description = ?, updated_at = ? WHERE id = ?"
+    _, err := r.db.Exec(query, habit.User_id, habit.Title, habit.Description, time.Now(), habit.ID)
+    if err != nil {
+        return habit, err
+    }
+    return r.FindByID(habit.ID)
+}
