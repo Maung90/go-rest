@@ -66,3 +66,38 @@ func ValidateRefreshToken(tokenString string) (*jwt.Token, error) {
 		return []byte(os.Getenv("JWT_REFRESH_SECRET")), nil
 	})
 }
+
+func GenerateResetToken(user user.User) (*TokenDetails, error) {
+	resetLifespan, err := time.ParseDuration(os.Getenv("RESET_TOKEN_LIFESPAN"))
+	if err != nil {
+		return nil, err
+	}
+
+	td := &TokenDetails{}
+	td.ExpiresAt = time.Now().Add(resetLifespan)
+	td.TokenUUID = uuid.NewString()
+
+	resetClaims := jwt.MapClaims{
+		"user_id": user.ID,
+		"jti":     td.TokenUUID,
+		"exp":     td.ExpiresAt.Unix(),
+		"iat":     time.Now().Unix(),
+	}
+
+	resetToken := jwt.NewWithClaims(jwt.SigningMethodHS256, resetClaims)
+	td.AccessToken, err = resetToken.SignedString([]byte(os.Getenv("JWT_RESET_SECRET")))
+	if err != nil {
+		return nil, err
+	}
+
+	return td, nil
+}
+
+func ValidateResetToken(tokenString string) (*jwt.Token, error) {
+	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(os.Getenv("JWT_RESET_SECRET")), nil
+	})
+}

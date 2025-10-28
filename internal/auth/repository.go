@@ -9,11 +9,14 @@ import (
 )
 
 type Repository interface {
-	Register(newUser user.User) (user.User, error)
+	DeleteRefreshToken(tokenUUID string) error
 	FindByEmail(email string) (user.User, error)
+	Register(newUser user.User) (user.User, error)
+	FetchRefreshToken(tokenID string) (int, error)
 	Login(email string, password string) (user.User, error)
 	SaveRefreshToken(userID int, tokenID string, expiresAt time.Time) error
-	FetchRefreshToken(tokenID string) (int, error)
+	FindByNameAndEmail(name, email string) (user.User, error)
+	UpdatePassword(userID int, newPasswordHash string) error
 }
 
 type repository struct {
@@ -106,4 +109,23 @@ func (r *repository) Login(email string, password string) (user.User, error) {
 		return user.User{}, errors.New("invalid email or password")
 	}
 	return foundUser, nil
+}
+
+func (r *repository) DeleteRefreshToken(tokenUUID string) error {
+	query := "DELETE FROM refresh_tokens WHERE id = ?"
+	_, err := r.db.Exec(query, tokenUUID)
+	return err
+}
+
+func (r *repository) FindByNameAndEmail(name, email string) (user.User, error) {
+	var foundUser user.User
+	query := "SELECT id, name, email, password FROM users WHERE name = ? AND email = ?"
+	err := r.db.QueryRow(query, name, email).Scan(&foundUser.ID, &foundUser.Name, &foundUser.Email, &foundUser.Password)
+	return foundUser, err
+}
+
+func (r *repository) UpdatePassword(userID int, newPasswordHash string) error {
+	query := "UPDATE users SET password = ? WHERE id = ?"
+	_, err := r.db.Exec(query, newPasswordHash, userID)
+	return err
 }

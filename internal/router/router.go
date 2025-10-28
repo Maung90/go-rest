@@ -24,13 +24,22 @@ func SetupRouter(
 	{
 		authRoutes.POST("/login", authHandler.Login)
 		authRoutes.POST("/register", authHandler.Register)
-		// authRoutes.GET("/:email", authHandler.GetUserByEmail)
 		authRoutes.POST("/refresh", authHandler.Refresh)
+		authRoutes.POST("/forgot-password", authHandler.ForgotPassword)
+		authRoutes.POST("/reset-password", authHandler.ResetPassword)
 	}
 
 	protected := api.Group("/")
 	protected.Use(middleware.AuthMiddleware())
 	{
+
+		authRoutes := protected.Group("auth")
+		{
+			authRoutes.POST("/logout", authHandler.Logout)
+			authRoutes.POST("/profile", authHandler.UpdateProfile)
+			authRoutes.GET("/me", authHandler.GetProfile)
+		}
+
 		userRoutes := protected.Group("/users")
 		{
 			userRoutes.GET("/", userHandler.GetUsers)

@@ -8,13 +8,13 @@
 Fitur dasar agar setiap user memiliki data habit masing-masing secara terpisah.
 
 |  ✅  | Fitur            | Endpoint (contoh)              | Deskripsi                                            |
-| :-: | ---------------- | ------------------------------ | ---------------------------------------------------- |
-|  ✅  | Register user    | `POST /api/v1/register`        | Mendaftarkan akun baru dengan nama, email, password. |
-|  ✅  | Login user       | `POST /api/v1/login`           | Login dan mendapatkan token JWT.                     |
-|  ⬜  | Logout user      | `POST /api/v1/logout`          | Menghapus sesi/token aktif.                          |
-|  ⬜  | Get user profile | `GET /api/v1/user`             | Menampilkan profil user yang sedang login.           |
-|  ⬜  | Update profile   | `PUT /api/v1/user`             | Mengubah data profil user.                           |
-|  ⬜  | Forgot Password  | `POST /api/v1/forgot-password` | Mengirim tautan atau token untuk reset password.     |
+| :-:  | ---------------- | ------------------------------ | ---------------------------------------------------- |
+|  ✅  | Register user    | `POST /api/v1/auth/register`   | Mendaftarkan akun baru dengan nama, email, password. |
+|  ✅  | Login user       | `POST /api/v1/auth/login`      | Login dan mendapatkan token JWT.                     |
+|  ✅  | Logout user      | `POST /api/v1/auth/logout`     | Menghapus sesi/token aktif.                          |
+|  ✅  | Get user profile | `GET /api/v1/auth/me`          | Menampilkan profil user yang sedang login.           |
+|  ✅  | Update profile   | `PUT /api/v1/auth/update`      | Mengubah data profil user.                           |
+|  ✅  | Forgot Password  | `POST /api/v1/auth/forgot-password` | Mengirim tautan atau token untuk reset password.     |
 
 ---
 

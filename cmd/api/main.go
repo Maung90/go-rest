@@ -30,13 +30,13 @@ func main() {
 	authRepository := auth.NewRepository(db)
 	habitLogRepository := habitLog.NewRepository(db)
 
-	authService := auth.NewService(authRepository)
+	authService := auth.NewAuthService(authRepository)
 	habitLogService := habitLog.NewHabitLogService(habitLogRepository)
 	userService := service.NewService[user.User](userRepository)
 	habitService := service.NewService[habit.Habit](habitRepository)
 
 	userHandler := user.NewHandler(userService)
-	authHandler := auth.NewHandler(authService)
+	authHandler := auth.NewHandler(authService, userService)
 	habitLogHandler := habitLog.NewHandler(habitLogService, habitService)
 	habitHandler := habit.NewHandler(habitService)
 
