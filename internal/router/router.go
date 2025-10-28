@@ -39,6 +39,7 @@ func SetupRouter(userHandler *user.Handler, habitHandler *habit.Handler, authHan
 		authRoutes.POST("/login", authHandler.Login)
 		authRoutes.POST("/register", authHandler.Register)
 		authRoutes.GET("/:email", authHandler.GetUserByEmail)
+		authRoutes.POST("/refresh", authHandler.Refresh)
 	}
 	return router
 }

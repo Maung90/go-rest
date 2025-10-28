@@ -45,10 +45,30 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.Login(input)
+	tokens, err := h.service.Login(input)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, user)
+
+	c.JSON(http.StatusOK, tokens)
+}
+
+func (h *Handler) Refresh(c *gin.Context) {
+	type RefreshInput struct {
+		RefreshToken string `json:"refresh_token" binding:"required"`
+	}
+	var input RefreshInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	newAccessToken, err := h.service.Refresh(input.RefreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"access_token": newAccessToken})
 }

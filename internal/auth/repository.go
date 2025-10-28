@@ -1,18 +1,19 @@
 package auth
 
 import (
-	"golang.org/x/crypto/bcrypt"
-	"go-rest/internal/user"
 	"database/sql"
 	"errors"
+	"go-rest/internal/user"
+	"golang.org/x/crypto/bcrypt"
 	"time"
-
 )
 
 type Repository interface {
 	Register(newUser user.User) (user.User, error)
 	FindByEmail(email string) (user.User, error)
-	Login(email string, password string)(user.User, error) 
+	Login(email string, password string) (user.User, error)
+	SaveRefreshToken(userID int, tokenID string, expiresAt time.Time) error
+	FetchRefreshToken(tokenID string) (int, error)
 }
 
 type repository struct {
@@ -21,6 +22,29 @@ type repository struct {
 
 func NewRepository(db *sql.DB) Repository {
 	return &repository{db: db}
+}
+
+type RefreshToken struct {
+    ID         int       `json:"required"`
+    UserID     int
+    Token      string    `json:"unique"`
+    ExpiredAt  time.Time
+}
+
+func (r *repository) FetchRefreshToken(tokenID string) (int, error) {
+	var userID int
+	query := "SELECT user_id FROM refresh_tokens WHERE id = ?"
+	err := r.db.QueryRow(query, tokenID).Scan(&userID)
+	if err != nil {
+		return 0, err
+	}
+	return userID, nil
+}
+
+func (r *repository) SaveRefreshToken(userID int, tokenID string, expiresAt time.Time) error {
+	query := "INSERT INTO refresh_tokens (id, user_id, expires_at) VALUES (?, ?, ?)"
+	_, err := r.db.Exec(query, tokenID, userID, expiresAt)
+	return err
 }
 
 func (r *repository) Register(newUser user.User) (user.User, error) {

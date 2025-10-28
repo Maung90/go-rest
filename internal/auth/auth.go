@@ -1,6 +1,5 @@
 package auth
 
-// Struct untuk menampung data input dari user
 type RegisterInput struct {
     Name string `json:"name" binding:"required"`
     Email    string `json:"email" binding:"required,email"`
@@ -17,6 +16,7 @@ type LoginInput struct {
     Password string `json:"password" binding:"required,min=8"`
 }
 
-// type LoginResponse struct {
-//     Token string `json:"token"`
-// }
+type LoginResponse struct {
+    AccessToken  string `json:"access_token"`
+    RefreshToken string `json:"refresh_token"`
+}

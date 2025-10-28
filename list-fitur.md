@@ -29,8 +29,8 @@ Mengelola daftar kegiatan (habit) yang ingin dilakukan setiap hari.
 |  ✅  | Lihat detail habit           | `GET /api/v1/habits/{id}`                    | Menampilkan detail habit tertentu.                              |
 |  ✅  | Update habit                 | `PUT /api/v1/habits/{id}`                    | Mengubah nama, deskripsi, atau kategori habit.                  |
 |  ✅  | Hapus habit                  | `DELETE /api/v1/habits/{id}`                 | Menghapus habit tertentu.                                       |
-|  ⬜  | Tandai habit sebagai selesai | `POST /api/v1/habits/{id}/complete`          | Menandai habit telah dilakukan pada hari tertentu.              |
-|  ⬜  | Riwayat habit harian         | `GET /api/v1/habits/history?date=YYYY-MM-DD` | Melihat habit apa saja yang diselesaikan pada tanggal tertentu. |
+|  ✅  | Tandai habit sebagai selesai | `POST /api/v1/habits/{id}/complete`          | Menandai habit telah dilakukan pada hari tertentu.              |
+|  ✅  | Riwayat habit harian         | `GET /api/v1/habits/history?date=YYYY-MM-DD` | Melihat habit apa saja yang diselesaikan pada tanggal tertentu. |
 
 ---
 
