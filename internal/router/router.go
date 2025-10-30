@@ -5,16 +5,18 @@ import (
 	"go-rest/internal/habitLog"
 	"github.com/gin-gonic/gin"
 	"go-rest/internal/habit"
+	"go-rest/internal/sleep"
 	"go-rest/internal/auth"
 	"go-rest/internal/user"
 
 )
 
 func SetupRouter(
+	authHandler *auth.Handler, 
 	userHandler *user.Handler, 
 	habitHandler *habit.Handler, 
-	authHandler *auth.Handler, 
 	habitLogHandler *habitLog.Handler,
+	sleepHandler *sleep.Handler, 
 ) *gin.Engine {
 	router := gin.Default()
 
@@ -58,6 +60,15 @@ func SetupRouter(
 			habitRoutes.POST("/:id/complete", habitLogHandler.CreateLogs)
 			habitRoutes.PUT("/:id", habitHandler.UpdateHabit)
 			habitRoutes.DELETE("/:id", habitHandler.DeleteHabit)
+		}
+
+		sleepRoutes := protected.Group("/sleeps")
+		{
+			sleepRoutes.GET("/", sleepHandler.GetSleeps)
+			sleepRoutes.GET("/:id", sleepHandler.GetSleep)
+			sleepRoutes.POST("/", sleepHandler.CreateSleep)
+			sleepRoutes.PUT("/:id", sleepHandler.UpdateSleep)
+			sleepRoutes.DELETE("/:id", sleepHandler.DeleteSleep)
 		}
 	}
 
