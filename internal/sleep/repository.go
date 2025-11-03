@@ -12,6 +12,8 @@ type Repository interface {
 	Save(sleep Sleep) (Sleep, error)
 	Update(sleep Sleep) (Sleep, error)
 	Delete(id int) error
+	GetWeeklyStats(userID int) ([]SleepStat, error) 
+	GetMonthlyStats(userID int) ([]SleepStat, error) 
 }
 
 type repository struct {
@@ -84,4 +86,62 @@ func (r *repository) Update(sleep Sleep) (Sleep, error) {
 func (r *repository) Delete(id int) error {
 	_, err := r.db.Exec("DELETE FROM sleep_logs WHERE id = ?", id)
 	return err
+}
+
+func (r *repository) GetWeeklyStats(userID int) ([]SleepStat, error) {
+	query := `
+	SELECT
+	CONCAT(YEAR(sleep_start), '-W', LPAD(WEEK(sleep_start, 1), 2, '0')) AS period,
+	SUM(duration_hours) AS total_hours,
+	AVG(duration_hours) AS avg_hours
+	FROM sleep_logs
+	WHERE user_id = ?
+	GROUP BY YEAR(sleep_start), WEEK(sleep_start, 1)
+	ORDER BY period DESC;
+	`
+
+	rows, err := r.db.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var stats []SleepStat
+	for rows.Next() {
+		var s SleepStat
+		if err := rows.Scan(&s.Period, &s.TotalHours, &s.AvgHours); err != nil {
+			return nil, err
+		}
+		stats = append(stats, s)
+	}
+	return stats, nil
+}
+
+func (r *repository) GetMonthlyStats(userID int) ([]SleepStat, error) {
+	query := `
+	SELECT
+	DATE_FORMAT(sleep_start, '%Y-%m') AS period,
+	SUM(duration_hours) AS total_hours,
+	AVG(duration_hours) AS avg_hours
+	FROM sleep_logs
+	WHERE user_id = ?
+	GROUP BY YEAR(sleep_start), MONTH(sleep_start)
+	ORDER BY period DESC;
+	`
+
+	rows, err := r.db.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var stats []SleepStat
+	for rows.Next() {
+		var s SleepStat
+		if err := rows.Scan(&s.Period, &s.TotalHours, &s.AvgHours); err != nil {
+			return nil, err
+		}
+		stats = append(stats, s)
+	}
+	return stats, nil
 }

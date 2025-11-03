@@ -66,6 +66,8 @@ func SetupRouter(
 		{
 			sleepRoutes.GET("/", sleepHandler.GetSleeps)
 			sleepRoutes.GET("/:id", sleepHandler.GetSleep)
+			sleepRoutes.GET("/weekly", sleepHandler.GetWeeklyStats)
+			sleepRoutes.GET("/monthly", sleepHandler.GetMonthlyStats)
 			sleepRoutes.POST("/", sleepHandler.CreateSleep)
 			sleepRoutes.PUT("/:id", sleepHandler.UpdateSleep)
 			sleepRoutes.DELETE("/:id", sleepHandler.DeleteSleep)

@@ -17,3 +17,9 @@ type SleepInput struct {
 	SleepStart string 			`json:"sleep_start" binding:"required"`
 	SleepEnd   string 			`json:"sleep_end" binding:"required"`
 }
+
+type SleepStat struct {
+	Period 				string  `json:"period"`
+	TotalHours float64 `json:"total_hours"`
+	AvgHours   float64 `json:"avg_hours"`
+}

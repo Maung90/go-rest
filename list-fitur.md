@@ -40,10 +40,10 @@ Mencatat jam tidur dan durasi tidur pengguna.
 
 |  ✅  | Fitur                | Endpoint (contoh)                   | Deskripsi                                        |
 | :-: | -------------------- | ----------------------------------- | ------------------------------------------------ |
-|  ⬜  | Tambah catatan tidur | `POST /api/v1/sleep`                | Menyimpan waktu mulai dan bangun tidur.          |
-|  ⬜  | Lihat catatan tidur  | `GET /api/v1/sleep?date=YYYY-MM-DD` | Menampilkan durasi tidur di hari tertentu.       |
-|  ⬜  | Update catatan tidur | `PUT /api/v1/sleep/{id}`            | Mengubah     tidur jika salah input.            |
-|  ⬜  | Hapus catatan tidur  | `DELETE /api/v1/sleep/{id}`         | Menghapus catatan tidur tertentu.                |
+|  ✅  | Tambah catatan tidur | `POST /api/v1/sleep`                | Menyimpan waktu mulai dan bangun tidur.          |
+|  ✅  | Lihat catatan tidur  | `GET /api/v1/sleep?date=YYYY-MM-DD` | Menampilkan durasi tidur di hari tertentu.       |
+|  ✅  | Update catatan tidur | `PUT /api/v1/sleep/{id}`            | Mengubah     tidur jika salah input.            |
+|  ✅  | Hapus catatan tidur  | `DELETE /api/v1/sleep/{id}`         | Menghapus catatan tidur tertentu.                |
 |  ⬜  | Statistik tidur      | `GET /api/v1/sleep/statistics`      | Melihat rata-rata durasi tidur per minggu/bulan. |
 
 ---

@@ -7,6 +7,8 @@ type Service interface {
 	Update(sleep Sleep) (Sleep, error)
 	Delete(id int) error
 	GetByUserID(userID int) ([]Sleep, error)
+	GetWeeklyStats(userID int) ([]SleepStat, error)
+	GetMonthlyStats(userID int) ([]SleepStat, error)
 }
 
 type service struct {
@@ -35,4 +37,12 @@ func (s *service) Delete(id int) error {
 
 func (s *service) GetByUserID(userID int) ([]Sleep, error) {
 	return s.repository.FindAll(userID)
+}
+
+func (s *service) GetWeeklyStats(userID int) ([]SleepStat, error) {
+	return s.repository.GetWeeklyStats(userID)
+}
+
+func (s *service) GetMonthlyStats(userID int) ([]SleepStat, error) {
+	return s.repository.GetMonthlyStats(userID)
 }

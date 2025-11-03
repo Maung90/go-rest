@@ -61,7 +61,7 @@ func (h *Handler) CreateSleep(c *gin.Context) {
 		return
 	}
 
-layout := "2006-01-02 15:04:05"
+	layout := "2006-01-02 15:04:05"
 
 	startTime, err := time.Parse(layout, input.SleepStart)
 	if err != nil {
@@ -106,7 +106,7 @@ func (h *Handler) UpdateSleep(c *gin.Context) {
 		return
 	}
 
-layout := "2006-01-02 15:04:05"
+	layout := "2006-01-02 15:04:05"
 
 	startTime, err := time.Parse(layout, input.SleepStart)
 	if err != nil {
@@ -142,4 +142,42 @@ func (h *Handler) DeleteSleep(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Sleep deleted successfully"})
+}
+
+func (h *Handler) GetWeeklyStats(c *gin.Context) {
+	userIDContext, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context. Authorization may have failed."})
+		return
+	}
+	userID, ok := userIDContext.(int)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID in context is not of expected type"})
+		return
+	}
+	stats, err := h.service.GetWeeklyStats(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, stats)
+}
+
+func (h *Handler) GetMonthlyStats(c *gin.Context) {
+	userIDContext, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context. Authorization may have failed."})
+		return
+	}
+	userID, ok := userIDContext.(int)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID in context is not of expected type"})
+		return
+	}
+	stats, err := h.service.GetMonthlyStats(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, stats)
 }
