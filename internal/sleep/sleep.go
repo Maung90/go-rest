@@ -14,6 +14,6 @@ type Sleep struct{
 
 type SleepInput struct {
 	User_id 			int 						`json:"user_id" binding:"required"`
-	SleepStart time.Time `json:"sleep_start" binding:"required"`
-	SleepEnd   time.Time `json:"sleep_end" binding:"required"`
+	SleepStart string 			`json:"sleep_start" binding:"required"`
+	SleepEnd   string 			`json:"sleep_end" binding:"required"`
 }

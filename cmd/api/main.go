@@ -35,7 +35,7 @@ func main() {
 	authService := auth.NewAuthService(authRepository)
 	habitLogService := habitLog.NewHabitLogService(habitLogRepository)
 	userService := service.NewService[user.User](userRepository)
-	sleepService := service.NewService[sleep.Sleep](sleepRepository)
+	sleepService := sleep.NewService(sleepRepository)
 	habitService := service.NewService[habit.Habit](habitRepository)
 
 	userHandler := user.NewHandler(userService)

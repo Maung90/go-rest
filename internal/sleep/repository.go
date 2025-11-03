@@ -45,7 +45,7 @@ func (r *repository) FindAll(userID int) ([]Sleep, error) {
 
 func (r *repository) FindByID(userID, id int) (Sleep, error) {
 	var sleep Sleep
-	err := r.db.QueryRow("SELECT id, user_id, title, description, created_at, updated_at FROM sleep_logs WHERE id = ? AND user_id", id, userID).
+	err := r.db.QueryRow("SELECT id, user_id, sleep_start, sleep_end,duration_hours, created_at, updated_at FROM sleep_logs WHERE id = ? AND user_id = ?", id, userID).
 	Scan(&sleep.ID, &sleep.User_id, &sleep.SleepStart, &sleep.SleepEnd, &sleep.Duration, &sleep.CreatedAt, &sleep.UpdatedAt)
 	if err != nil {
 		return sleep, err
@@ -54,12 +54,10 @@ func (r *repository) FindByID(userID, id int) (Sleep, error) {
 }
 
 func (r *repository) Save(sleep Sleep) (Sleep, error) {
-	// Hitung durasi antara waktu selesai dan mulai
-	duration := sleep.SleepEnd.Sub(sleep.SleepStart) 
 
-	query := "INSERT INTO sleep_logs (user_id, sleep_start, sleep_end, created_at, duration_hours, updated_at) VALUES (?, ?, ?, ?, ?)"
+	query := "INSERT INTO sleep_logs (user_id, sleep_start, sleep_end, duration_hours, created_at,  updated_at) VALUES (?, ?, ?, ?, ?, ?)"
 
-	result, err := r.db.Exec(query, sleep.User_id, sleep.SleepStart, duration, sleep.SleepEnd, time.Now(), time.Now())
+	result, err := r.db.Exec(query, sleep.User_id, sleep.SleepStart, sleep.SleepEnd, sleep.Duration, time.Now(), time.Now())
 	if err != nil {
 		return sleep, err
 	}
@@ -69,19 +67,18 @@ func (r *repository) Save(sleep Sleep) (Sleep, error) {
 		return sleep, err
 	}
 
-	return r.FindByID(int(lastID), sleep.User_id)
+	return r.FindByID(sleep.User_id, int(lastID))
 }
 
 func (r *repository) Update(sleep Sleep) (Sleep, error) {
-	// Hitung durasi antara waktu selesai dan mulai
-	duration := sleep.SleepEnd.Sub(sleep.SleepStart)
+
 	query := "UPDATE sleep_logs SET user_id = ?, sleep_start = ?, sleep_end = ?, duration_hours = ?, updated_at = ? WHERE id = ?"
-	_, err := r.db.Exec(query, sleep.User_id, sleep.SleepStart, sleep.SleepEnd, duration, time.Now(), sleep.ID)
+	_, err := r.db.Exec(query, sleep.User_id, sleep.SleepStart, sleep.SleepEnd, sleep.Duration, time.Now(), sleep.ID)
 	
 	if err != nil {
 		return sleep, err
 	}
-	return r.FindByID(sleep.ID, sleep.User_id)
+	return r.FindByID(sleep.User_id, sleep.ID)
 }
 
 func (r *repository) Delete(id int) error {
