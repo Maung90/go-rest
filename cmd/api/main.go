@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go-rest/internal/dailyStory"
 	"go-rest/internal/habitLog"
 	"go-rest/internal/service"
 	"go-rest/internal/router"
@@ -27,22 +28,28 @@ func main() {
 	defer db.Close()
 
 	userRepository := user.NewRepository(db)
-	sleepRepository := sleep.NewRepository(db)
-	habitRepository := habit.NewRepository(db)
-	authRepository := auth.NewRepository(db)
-	habitLogRepository := habitLog.NewRepository(db)
-
-	authService := auth.NewAuthService(authRepository)
-	habitLogService := habitLog.NewHabitLogService(habitLogRepository)
 	userService := service.NewService[user.User](userRepository)
-	sleepService := sleep.NewService(sleepRepository)
-	habitService := service.NewService[habit.Habit](habitRepository)
-
 	userHandler := user.NewHandler(userService)
-	authHandler := auth.NewHandler(authService, userService)
-	habitLogHandler := habitLog.NewHandler(habitLogService, habitService)
-	habitHandler := habit.NewHandler(habitService)
+
+	sleepRepository := sleep.NewRepository(db)
+	sleepService := sleep.NewService(sleepRepository)
 	sleepHandler := sleep.NewHandler(sleepService)
+
+	authRepository := auth.NewRepository(db)
+	authService := auth.NewAuthService(authRepository)
+	authHandler := auth.NewHandler(authService, userService)
+
+	habitRepository := habit.NewRepository(db)
+	habitService := service.NewService[habit.Habit](habitRepository)
+	habitHandler := habit.NewHandler(habitService)
+
+	habitLogRepository := habitLog.NewRepository(db)
+	habitLogService := habitLog.NewHabitLogService(habitLogRepository)
+	habitLogHandler := habitLog.NewHandler(habitLogService, habitService)
+
+	dailyStoryRepository := dailyStory.NewRepository(db)
+	dailyStoryService := dailyStory.NewService(dailyStoryRepository)
+	dailyStoryHandler := dailyStory.NewHandler(dailyStoryService)
 
 	appRouter := router.SetupRouter(
 		authHandler,	
@@ -50,6 +57,7 @@ func main() {
 		habitHandler,
 		habitLogHandler, 
 		sleepHandler,
+		dailyStoryHandler,
 	)
 
 

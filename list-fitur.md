@@ -44,7 +44,7 @@ Mencatat jam tidur dan durasi tidur pengguna.
 |  ✅  | Lihat catatan tidur  | `GET /api/v1/sleep?date=YYYY-MM-DD` | Menampilkan durasi tidur di hari tertentu.       |
 |  ✅  | Update catatan tidur | `PUT /api/v1/sleep/{id}`            | Mengubah     tidur jika salah input.            |
 |  ✅  | Hapus catatan tidur  | `DELETE /api/v1/sleep/{id}`         | Menghapus catatan tidur tertentu.                |
-|  ⬜  | Statistik tidur      | `GET /api/v1/sleep/statistics`      | Melihat rata-rata durasi tidur per minggu/bulan. |
+|  ✅  | Statistik tidur      | `GET /api/v1/sleep/statistics`      | Melihat rata-rata durasi tidur per minggu/bulan. |
 
 ---
 
@@ -54,10 +54,10 @@ Mencatat aktivitas sehari-hari seperti bekerja, berolahraga, membaca, dsb.
 
 |  ✅  | Fitur                        | Endpoint (contoh)                        | Deskripsi                                                           |
 | :-: | ---------------------------- | ---------------------------------------- | ------------------------------------------------------------------- |
-|  ⬜  | Tambah catatan kegiatan      | `POST /api/v1/activities`                | Menyimpan aktivitas (contoh: “Bekerja 6 jam”, “Berjalan 30 menit”). |
-|  ⬜  | Lihat semua catatan kegiatan | `GET /api/v1/activities?date=YYYY-MM-DD` | Menampilkan aktivitas per hari.                                     |
-|  ⬜  | Update catatan kegiatan      | `PUT /api/v1/activities/{id}`            | Mengubah nama atau durasi aktivitas.                                |
-|  ⬜  | Hapus catatan kegiatan       | `DELETE /api/v1/activities/{id}`         | Menghapus catatan tertentu.                                         |
+|  ✅  | Tambah catatan kegiatan      | `POST /api/v1/activities`                | Menyimpan aktivitas (contoh: “Bekerja 6 jam”, “Berjalan 30 menit”). |
+|  ✅  | Lihat semua catatan kegiatan | `GET /api/v1/activities?date=YYYY-MM-DD` | Menampilkan aktivitas per hari.                                     |
+|  ✅  | Update catatan kegiatan      | `PUT /api/v1/activities/{id}`            | Mengubah nama atau durasi aktivitas.                                |
+|  ✅  | Hapus catatan kegiatan       | `DELETE /api/v1/activities/{id}`         | Menghapus catatan tertentu.                                         |
 
 ---
 
