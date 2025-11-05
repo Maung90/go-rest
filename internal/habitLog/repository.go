@@ -3,12 +3,14 @@ package habitLog
 import (
 	"database/sql"
 	"time"
+
+	customsql "go-rest/pkg/sql"
 )
 
 type Repository interface {
 	CreateLogs(newHabitLog HabitLog) (HabitLog, error)
-	FindHabitLogs(date time.Time) ([]HabitLog, error) 
-	FindByID(id int) (HabitLog, error) 
+	FindHabitLogs(date time.Time) ([]HabitLog, error)
+	FindByID(id int) (HabitLog, error)
 }
 
 type repository struct {
@@ -20,30 +22,37 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (r *repository) FindByID(id int) (HabitLog, error) {
-	var foundLog HabitLog
-	query := "SELECT id, habit_id, user_id, log_date, status, created_at, updated_at FROM habit_logs WHERE id = ?"
-	
-	err := r.db.QueryRow(query, id).Scan(
-		&foundLog.ID,
-		&foundLog.Habit_id,
-		&foundLog.User_id,
-		&foundLog.Log_date,
-		&foundLog.Status,
-		&foundLog.Created_at,
-		&foundLog.Updated_at,
-	)
+	builder := customsql.NewSQLBuilder(r.db, "habit_logs").
+		Select("habit_id", "user_id", "log_date", "status").
+		Where("id = ?", id)
+
+	rows, err := builder.Get()
 	if err != nil {
 		return HabitLog{}, err
 	}
-	return foundLog, nil
+	defer rows.Close()
+
+	var h HabitLog
+	if rows.Next() {
+		err := rows.Scan(&h.ID, &h.Created_at, &h.Updated_at, &h.Habit_id, &h.User_id, &h.Log_date, &h.Status)
+		if err != nil {
+			return HabitLog{}, err
+		}
+	}
+	return h, nil
 }
 
-
 func (r *repository) CreateLogs(newHabitLog HabitLog) (HabitLog, error) {
-	query := "INSERT INTO habit_logs (habit_id, user_id, log_date, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+	data := map[string]interface{}{
+		"habit_id":   newHabitLog.Habit_id,
+		"user_id":    newHabitLog.User_id,
+		"log_date":   newHabitLog.Log_date.Format("2006-01-02"),
+		"status":     "done",
+		"created_at": time.Now(),
+		"updated_at": time.Now(),
+	}
 
-	logDateString := newHabitLog.Log_date.Format("2006-01-02")
-	result, err := r.db.Exec(query, newHabitLog.Habit_id, newHabitLog.User_id, logDateString, "done", time.Now(), time.Now())
+	result, err := customsql.Insert(r.db, "habit_logs", data)
 	if err != nil {
 		return HabitLog{}, err
 	}
@@ -57,32 +66,27 @@ func (r *repository) CreateLogs(newHabitLog HabitLog) (HabitLog, error) {
 }
 
 func (r *repository) FindHabitLogs(date time.Time) ([]HabitLog, error) {
-	var foundLogs []HabitLog
+	formattedDate := date.Format("2006-01-02")
 
-	parseDate := date.Format("2006-01-02")
-	query := "SELECT id, habit_id, user_id, log_date, status, created_at, updated_at FROM habit_logs WHERE log_date = ?"
-	rows, err := r.db.Query(query, parseDate)
+	builder := customsql.NewSQLBuilder(r.db, "habit_logs").
+		Select("habit_id", "user_id", "log_date", "status").
+		Where("log_date = ?", formattedDate).
+		OrderBy("created_at DESC")
+
+	rows, err := builder.Get()
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
+	var logs []HabitLog
 	for rows.Next() {
-		var log HabitLog
-		err := rows.Scan(
-			&log.ID,
-			&log.Habit_id,
-			&log.User_id,
-			&log.Log_date,
-			&log.Status,
-			&log.Created_at,
-			&log.Updated_at,
-		)
+		var h HabitLog
+		err := rows.Scan(&h.ID, &h.Created_at, &h.Updated_at, &h.Habit_id, &h.User_id, &h.Log_date, &h.Status)
 		if err != nil {
 			return nil, err
 		}
-		foundLogs = append(foundLogs, log)
+		logs = append(logs, h)
 	}
-
-	return foundLogs, nil
+	return logs, nil
 }

@@ -6,6 +6,7 @@ import (
 	"go-rest/internal/user"
 	"golang.org/x/crypto/bcrypt"
 	"time"
+	sqlbuilder "go-rest/pkg/sql"
 )
 
 type Repository interface {
@@ -28,31 +29,50 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 type RefreshToken struct {
-    ID         int       `json:"required"`
-    UserID     int
-    Token      string    `json:"unique"`
-    ExpiredAt  time.Time
+	ID         int       `json:"required"`
+	UserID     int
+	Token      string    `json:"unique"`
+	ExpiredAt  time.Time
 }
 
 func (r *repository) FetchRefreshToken(tokenID string) (int, error) {
 	var userID int
-	query := "SELECT user_id FROM refresh_tokens WHERE id = ?"
-	err := r.db.QueryRow(query, tokenID).Scan(&userID)
+	query, err := sqlbuilder.RawQuery(r.db, `SELECT user_id FROM refresh_tokens WHERE id = ?`, tokenID)
 	if err != nil {
 		return 0, err
+	}
+	defer query.Close()
+
+	if query.Next(){
+		err := query.Scan(&userID)
+		if err != nil {
+			return 0, err
+		}
 	}
 	return userID, nil
 }
 
 func (r *repository) SaveRefreshToken(userID int, tokenID string, expiresAt time.Time) error {
-	query := "INSERT INTO refresh_tokens (id, user_id, expires_at) VALUES (?, ?, ?)"
-	_, err := r.db.Exec(query, tokenID, userID, expiresAt)
+	data := map[string]interface{}{
+		"id" 		 : tokenID, 
+		"user_id" 	 : userID, 
+		"expires_at" : expiresAt,
+	}
+	_, err := sqlbuilder.Insert(r.db, "refresh_tokens", data)
 	return err
 }
 
 func (r *repository) Register(newUser user.User) (user.User, error) {
-	query := "INSERT INTO users (name, email, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
-	result, err := r.db.Exec(query, newUser.Name, newUser.Email, newUser.Password, time.Now(), time.Now())
+	data := map[string]interface{}{
+		"name"							:    newUser.Name,
+		"email"						: newUser.Email,
+		"password"			: newUser.Password,
+		"created_at" : time.Now(),
+		"updated_at" : time.Now(),
+
+	}
+
+	result, err := sqlbuilder.Insert(r.db, "users", data)
 	if err != nil {
 		return user.User{}, err
 	}
@@ -61,39 +81,62 @@ func (r *repository) Register(newUser user.User) (user.User, error) {
 	if err != nil {
 		return user.User{}, err
 	}
+
 	return r.FindByID(int(lastID))
 }
 
 func (r *repository) FindByEmail(email string) (user.User, error) {
 	var foundUser user.User
-	query := "SELECT id, name, email, password, created_at, updated_at FROM users WHERE email = ?"
-	err := r.db.QueryRow(query, email).Scan(
-		&foundUser.ID,
-		&foundUser.Name,
-		&foundUser.Email,
-		&foundUser.Password,
-		&foundUser.CreatedAt,
-		&foundUser.UpdatedAt,
-	)
+
+	builder := sqlbuilder.NewSQLBuilder(r.db, "users").
+	Select("name", "email", "password").
+	Where("email = ?", email)
+	rows, err := builder.Get()
 	if err != nil {
 		return user.User{}, err
+	}
+	defer rows.Close()
+
+	if rows.Next(){
+		err := rows.Scan(
+			&foundUser.ID,
+			&foundUser.Name,
+			&foundUser.Email,
+			&foundUser.Password,
+			&foundUser.CreatedAt,
+			&foundUser.UpdatedAt,
+		)
+		if err != nil {
+			return user.User{}, err
+		}
 	}
 	return foundUser, nil
 }
 
 func (r *repository) FindByID(id int) (user.User, error) {
 	var foundUser user.User
-	query := "SELECT id, name, email, password, created_at, updated_at FROM users WHERE id = ?"
-	err := r.db.QueryRow(query, id).Scan(
-		&foundUser.ID,
-		&foundUser.Name,
-		&foundUser.Email,
-		&foundUser.Password,
-		&foundUser.CreatedAt,
-		&foundUser.UpdatedAt,
-	)
+	builder := sqlbuilder.NewSQLBuilder(r.db, "users").
+	Select("name", "email", "password").
+	Where("id = ?", id)
+
+	rows, err := builder.Get()
 	if err != nil {
 		return user.User{}, err
+	}
+	defer rows.Close()
+
+	if rows.Next(){
+		err := rows.Scan(
+			&foundUser.ID,
+			&foundUser.Name,
+			&foundUser.Email,
+			&foundUser.Password,
+			&foundUser.CreatedAt,
+			&foundUser.UpdatedAt,
+		)
+		if err != nil {
+			return user.User{}, err
+		}
 	}
 	return foundUser, nil
 }
@@ -112,20 +155,39 @@ func (r *repository) Login(email string, password string) (user.User, error) {
 }
 
 func (r *repository) DeleteRefreshToken(tokenUUID string) error {
-	query := "DELETE FROM refresh_tokens WHERE id = ?"
-	_, err := r.db.Exec(query, tokenUUID)
+	_, err := sqlbuilder.Delete(r.db, "refresh_tokens", "id = ?", tokenUUID)
 	return err
 }
 
 func (r *repository) FindByNameAndEmail(name, email string) (user.User, error) {
 	var foundUser user.User
-	query := "SELECT id, name, email, password FROM users WHERE name = ? AND email = ?"
-	err := r.db.QueryRow(query, name, email).Scan(&foundUser.ID, &foundUser.Name, &foundUser.Email, &foundUser.Password)
-	return foundUser, err
-}
+	rows, err := sqlbuilder.RawQuery(r.db, `
+		SELECT id, name, email, password FROM users WHERE name = ? AND email = ?
+		`, name, email)
+		if err != nil {
+			return user.User{}, err
+		}
+		defer rows.Close()
 
-func (r *repository) UpdatePassword(userID int, newPasswordHash string) error {
-	query := "UPDATE users SET password = ? WHERE id = ?"
-	_, err := r.db.Exec(query, newPasswordHash, userID)
-	return err
-}
+		if rows.Next() {
+			err := rows.Scan(&foundUser.ID, &foundUser.Name, &foundUser.Email, &foundUser.Password)
+			if err != nil {
+				return user.User{}, err
+			}
+		}
+		return foundUser, err
+	}
+
+	func (r *repository) UpdatePassword(userID int, newPasswordHash string) error {
+		data := map[string]interface{}{
+			"password": newPasswordHash,
+		}
+		_, err := sqlbuilder.Update(
+			r.db,
+			"daily_stories",
+			data,
+			"user_id = ?",
+			userID,
+		)
+		return err
+	}

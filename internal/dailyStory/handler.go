@@ -1,9 +1,9 @@
 package dailyStory
 
 import (
-	"net/http"
 	"strconv"
 	"database/sql"
+	"go-rest/pkg/response"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,22 +19,24 @@ func (h *Handler) GetAllStories(c *gin.Context) {
 	userIDContext, exists := c.Get("userID") 
 
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context. Authorization may have failed."})
+		response.Unauthorized(c, "Silahkan login terlebih dahulu!")
 		return
 	}
 	userID, ok := userIDContext.(int)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID in context is not of expected type"})
+		response.Unauthorized(c, "User ID tidak ditemukan di context.")
 		return
 	}
 
 	story, err := h.service.FindAll(userID)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Gagal mengambil cerita")
+		// c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, story)
+	response.OK(c, "Cerita berhasil diambil", story)
+	// c.JSON(http.StatusOK, story)
 }
 
 func (h *Handler) GetStoriesByDate(c *gin.Context) {
@@ -42,91 +44,90 @@ func (h *Handler) GetStoriesByDate(c *gin.Context) {
 	userIDContext, exists := c.Get("userID") // ambil dari middleware
 
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context. Authorization may have failed."})
+		response.Unauthorized(c, "User tidak ditemukan, pastikan login terlebih dahulu.")
 		return
 	}
 	userID, ok := userIDContext.(int)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID in context is not of expected type"})
+		response.Unauthorized(c, "User tidak ditemukan di context.")
 		return
 	}
 
 	stories, err := h.service.FindByDate(userID, date)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Gagal Mengambil cerita")
 		return
 	}
-	c.JSON(http.StatusOK, stories)
+	response.Created(c, "Cerita berhasil Diambil", stories)
 }
 
 func (h *Handler) CreateStories(c *gin.Context) {
 	userIDContext, exists := c.Get("userID") 
 
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context. Authorization may have failed."})
+		response.Unauthorized(c, "User tidak ditemukan, pastikan login terlebih dahulu.")
 		return
 	}
 	userID, ok := userIDContext.(int)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID in context is not of expected type"})
+		response.Unauthorized(c, "User tidak ditemukan di context.")
 		return
 	}
 	
 	var input StoryInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, "Cerita gagal disimpan", err)
 		return
 	}
 
 	story, err := h.service.Save(userID, input)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Cerita gagal disimpan")
 		return
 	}
-	c.JSON(http.StatusCreated, story)
+	response.OK(c, "Cerita berhasil diambil", story)
 }
 
 func (h *Handler) UpdateStories(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid story ID"})
+		response.ValidationError(c, "Data yang dikirim tidak valid", err.Error())
 		return
 	}
 
 	userIDContext, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		response.Unauthorized(c, "User ID tidak ditemukan di context.")
 		return
 	}
 	userID := userIDContext.(int)
 	
 	var input StoryInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, "Data yang diinputkan tidak valid", err)
 		return
 	}
 
 	story, err := h.service.Update(id, userID, input)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Story not found or user does not have permission"})
+			response.NotFound(c, "Data tidak ditemukan atau user tidak mempunyai ijin")
 			return
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c,err, "Data gagal di update")
 		return
 	}
-	
-	c.JSON(http.StatusOK, story)
+	response.OK(c, "Data berhasil diupdate", story)
 }
 
 func (h *Handler) DeleteStories(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	err := h.service.Delete(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Story not found"})
+			response.NotFound(c, "Data tidak ditemukan!")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Story deleted successfully"})
+	response.OK(c, "Data berhasil diupdate", "")
 }

@@ -3,6 +3,7 @@ package habit
 import (
     "database/sql"
     "time"
+    sqlbuilder "go-rest/pkg/sql"
 )
 
 
@@ -15,14 +16,17 @@ func NewRepository(db *sql.DB) *repository {
 }
 
 func (r *repository) FindAll() ([]Habit, error) {
-    var habits []Habit
-
-    rows, err := r.db.Query("SELECT id, user_id, title, description, created_at, updated_at FROM habits")
+    builder := sqlbuilder.NewSQLBuilder(r.db, "habits").
+    Select("user_id", "title", "description").
+    Where("user_id = ?", userID)
+    
+    rows, err := builder.Get()
     if err != nil {
         return habits, err
     }
     defer rows.Close()
 
+    var habits []Habit
     for rows.Next() {
         var habit Habit
         err := rows.Scan(&habit.ID, &habit.User_id, &habit.Title, &habit.Description, &habit.CreatedAt, &habit.UpdatedAt)
@@ -36,18 +40,36 @@ func (r *repository) FindAll() ([]Habit, error) {
 
 func (r *repository) FindByID(id int) (Habit, error) {
     var habit Habit
-    err := r.db.QueryRow("SELECT id, user_id, title, description, created_at, updated_at FROM habits WHERE id = ?", id).
-        Scan(&habit.ID, &habit.User_id, &habit.Title, &habit.Description, &habit.CreatedAt, &habit.UpdatedAt)
+    builder := sqlbuilder.NewSQLBuilder(r.db, "habits").
+    Select("user_id", "title", "description").
+    Where("id = ?", id)
     if err != nil {
-        return habit, err
+        return s, err
     }
+    defer rows.Close()
+
+    if rows.Next(){ 
+        err := rows.
+        Scan(&habit.ID, &habit.User_id, &habit.Title, &habit.Description, &habit.CreatedAt, &habit.UpdatedAt)
+        if err != nil {
+            return habit, err
+        }
+    }
+
     return habit, nil
 }
 
 func (r *repository) Save(habit Habit) (Habit, error) {
-    
-    query := "INSERT INTO habits (user_id, title, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
-    result, err := r.db.Exec(query, habit.User_id, habit.Title, habit.Description, time.Now(), time.Now())
+
+    data := map[string]interface{}{
+        "user_id"       : habit.User_id, 
+        "title"         : habit.Title, 
+        "description"   : habit.Description,
+        "created_at"    : time.Now(),
+        "updated_at"    : time.Now(),
+    }
+
+    result, err := sqlbuilder.Insert(r.db, "habits", data)
     if err != nil {
         return habit, err
     }
@@ -61,8 +83,21 @@ func (r *repository) Save(habit Habit) (Habit, error) {
 }
 
 func (r *repository) Update(habit Habit) (Habit, error) {
-    query := "UPDATE habits SET user_id = ?, title = ?, description = ?, updated_at = ? WHERE id = ?"
-    _, err := r.db.Exec(query, habit.User_id, habit.Title, habit.Description, time.Now(), habit.ID)
+
+    data := map[string]interface{}{
+        "user_id"       : habit.User_id, 
+        "title"         : habit.Title, 
+        "description"   : habit.Description,
+        "updated_at"    : time.Now(),
+    }
+
+    _, err := sqlbuilder.Update(
+        r.db,
+        "habits",
+        data,
+        "id = ?",
+        habit.ID,
+    )
     if err != nil {
         return habit, err
     }
@@ -70,15 +105,6 @@ func (r *repository) Update(habit Habit) (Habit, error) {
 }
 
 func (r *repository) Delete(id int) error {
-    _, err := r.db.Exec("DELETE FROM habits WHERE id = ?", id)
+    _, err := sqlbuilder.Delete(r.db, "habits", "id = ?", id)
     return err
-}
-
-func (r *repository) UpdateStatus(habit Habit) (Habit, error) {
-    query := "UPDATE habits SET user_id = ?, title = ?, description = ?, updated_at = ? WHERE id = ?"
-    _, err := r.db.Exec(query, habit.User_id, habit.Title, habit.Description, time.Now(), habit.ID)
-    if err != nil {
-        return habit, err
-    }
-    return r.FindByID(habit.ID)
 }

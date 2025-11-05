@@ -1,8 +1,8 @@
 package dailyStory
 
 import (
-	"time"
 	"errors"
+	"go-rest/pkg/parser"
 )
 
 type Service interface {
@@ -38,7 +38,7 @@ func (s *service) FindByID(userID int, id int) (DailyStory, error) {
 
 // Save implements Service.
 func (s *service) Save(userID int, input StoryInput) (DailyStory, error) {
-	parsedStoryDate, err := time.Parse("2006-01-02", input.StoryDate)
+	parsedStoryDate, err := parser.ParseDateString(input.StoryDate)
 	if err != nil {
 		return DailyStory{}, errors.New("invalid date format, please use YYYY-MM-DD")
 	}
@@ -54,8 +54,7 @@ func (s *service) Save(userID int, input StoryInput) (DailyStory, error) {
 
 // Implementasi fungsi Update
 func (s *service) Update(id int, userID int, input StoryInput) (DailyStory, error) {
-
-	parsedStoryDate, err := time.Parse("2006-01-02", input.StoryDate)
+	parsedStoryDate, err := parser.ParseDateString(input.StoryDate)
 	if err != nil {
 		return DailyStory{}, errors.New("invalid date format, please use YYYY-MM-DD")
 	}

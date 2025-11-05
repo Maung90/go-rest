@@ -54,10 +54,10 @@ Mencatat aktivitas sehari-hari seperti bekerja, berolahraga, membaca, dsb.
 
 |  ✅  | Fitur                        | Endpoint (contoh)                        | Deskripsi                                                           |
 | :-: | ---------------------------- | ---------------------------------------- | ------------------------------------------------------------------- |
-|  ✅  | Tambah catatan kegiatan      | `POST /api/v1/activities`                | Menyimpan aktivitas (contoh: “Bekerja 6 jam”, “Berjalan 30 menit”). |
-|  ✅  | Lihat semua catatan kegiatan | `GET /api/v1/activities?date=YYYY-MM-DD` | Menampilkan aktivitas per hari.                                     |
-|  ✅  | Update catatan kegiatan      | `PUT /api/v1/activities/{id}`            | Mengubah nama atau durasi aktivitas.                                |
-|  ✅  | Hapus catatan kegiatan       | `DELETE /api/v1/activities/{id}`         | Menghapus catatan tertentu.                                         |
+|  ⬜  | Tambah catatan kegiatan      | `POST /api/v1/activities`                | Menyimpan aktivitas (contoh: “Bekerja 6 jam”, “Berjalan 30 menit”). |
+|  ⬜  | Lihat semua catatan kegiatan | `GET /api/v1/activities?date=YYYY-MM-DD` | Menampilkan aktivitas per hari.                                     |
+|  ⬜  | Update catatan kegiatan      | `PUT /api/v1/activities/{id}`            | Mengubah nama atau durasi aktivitas.                                |
+|  ⬜  | Hapus catatan kegiatan       | `DELETE /api/v1/activities/{id}`         | Menghapus catatan tertentu.                                         |
 
 ---
 
@@ -67,10 +67,10 @@ Menulis cerita singkat dan suasana hati setiap hari.
 
 |  ✅  | Fitur                    | Endpoint (contoh)                         | Deskripsi                                                             |
 | :-: | ------------------------ | ----------------------------------------- | --------------------------------------------------------------------- |
-|  ⬜  | Tambah cerita harian     | `POST /api/v1/daily-story`                | Menyimpan satu kalimat cerita (contoh: “Hari ini produktif banget!”). |
-|  ⬜  | Lihat cerita per tanggal | `GET /api/v1/daily-story?date=YYYY-MM-DD` | Menampilkan cerita pada tanggal tertentu.                             |
-|  ⬜  | Update cerita harian     | `PUT /api/v1/daily-story/{id}`            | Mengubah cerita jika perlu.                                           |
-|  ⬜  | Hapus cerita harian      | `DELETE /api/v1/daily-story/{id}`         | Menghapus cerita.                                                     |
+|  ✅  | Tambah cerita harian     | `POST /api/v1/daily-story`                | Menyimpan satu kalimat cerita (contoh: “Hari ini produktif banget!”). |
+|  ✅  | Lihat cerita per tanggal | `GET /api/v1/daily-story?date=YYYY-MM-DD` | Menampilkan cerita pada tanggal tertentu.                             |
+|  ✅  | Update cerita harian     | `PUT /api/v1/daily-story/{id}`            | Mengubah cerita jika perlu.                                           |
+|  ✅  | Hapus cerita harian      | `DELETE /api/v1/daily-story/{id}`         | Menghapus cerita.                                                     |
 |  ⬜  | Statistik mood           | `GET /api/v1/daily-story/statistics`      | Menampilkan tren mood mingguan/bulanan dalam bentuk grafik.           |
 
 ---
