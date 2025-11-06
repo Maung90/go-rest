@@ -7,12 +7,12 @@ type RegisterInput struct {
 }
 
 type ForgotPassword struct {
-    Name string `json:"name"`
+    Name string `json:"name"  binding:"required"`
     Email string `json:"email" binding:"email"`
 }
 
 type LoginInput struct {
-    Email string `json:"email"`
+    Email string `json:"email" binding:"required,email"`
     Password string `json:"password" binding:"required,min=8"`
 }
 
@@ -26,8 +26,8 @@ type LogoutInput struct {
 }
 
 type UpdateProfileInput struct {
-    Name  string `json:"name"`
-    Email string `json:"email" binding:"email"`
+    Name  string `json:"name" binding:"required"`
+    Email string `json:"email" binding:"required,email"`
 }
 
 type ForgotPasswordInput struct {
