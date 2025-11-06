@@ -24,7 +24,7 @@ func (h *Handler) GetAllStories(c *gin.Context) {
 	}
 	userID, ok := userIDContext.(int)
 	if !ok {
-		response.Unauthorized(c, "User ID tidak ditemukan di context.")
+		response.Unauthorized(c, "Tipe user id tidak sesuai")
 		return
 	}
 
@@ -77,7 +77,7 @@ func (h *Handler) CreateStories(c *gin.Context) {
 	
 	var input StoryInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		response.ValidationError(c, "Cerita gagal disimpan", err)
+		response.ValidationError(c, "Cerita gagal disimpan, data yang diinputkan tidak valid", err)
 		return
 	}
 
@@ -87,7 +87,7 @@ func (h *Handler) CreateStories(c *gin.Context) {
 		response.HandleError(c, err, "Cerita gagal disimpan")
 		return
 	}
-	response.OK(c, "Cerita berhasil diambil", story)
+	response.Created(c, "Cerita berhasil disimpan", story)
 }
 
 func (h *Handler) UpdateStories(c *gin.Context) {

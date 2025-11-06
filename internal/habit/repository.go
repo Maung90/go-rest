@@ -16,9 +16,9 @@ func NewRepository(db *sql.DB) *repository {
 }
 
 func (r *repository) FindAll() ([]Habit, error) {
+    var habits []Habit
     builder := sqlbuilder.NewSQLBuilder(r.db, "habits").
-    Select("user_id", "title", "description").
-    Where("user_id = ?", userID)
+    Select("user_id", "title", "description")
     
     rows, err := builder.Get()
     if err != nil {
@@ -26,7 +26,6 @@ func (r *repository) FindAll() ([]Habit, error) {
     }
     defer rows.Close()
 
-    var habits []Habit
     for rows.Next() {
         var habit Habit
         err := rows.Scan(&habit.ID, &habit.User_id, &habit.Title, &habit.Description, &habit.CreatedAt, &habit.UpdatedAt)
@@ -43,8 +42,10 @@ func (r *repository) FindByID(id int) (Habit, error) {
     builder := sqlbuilder.NewSQLBuilder(r.db, "habits").
     Select("user_id", "title", "description").
     Where("id = ?", id)
+
+    rows, err := builder.Get()
     if err != nil {
-        return s, err
+        return habit, err
     }
     defer rows.Close()
 

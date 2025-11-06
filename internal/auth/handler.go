@@ -1,10 +1,10 @@
-package auth
+ package auth
 
 import (
 	"go-rest/internal/service"
 	"go-rest/internal/user"
 	"net/http"
-
+	"go-rest/pkg/response"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,42 +23,42 @@ func NewHandler(authService AuthService, userService *service.Service[user.User]
 func (h *Handler) Register(c *gin.Context) {
 	var input RegisterInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, "Data yang diinputkan tidak valid", err)
 		return
 	}
 
 	user, err := h.authService.Register(input)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			response.HandleError(c, err, "Registrasi gagal")
 		return
 	}
-	c.JSON(http.StatusCreated, user)
+	response.Created(c, "Registrasi Berhasil", user)
 }
 
 func (h *Handler) GetUserByEmail(c *gin.Context) {
 	email := c.Param("email")
 	user, err := h.authService.FindByEmail(email)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			response.NotFound(c, "Data tidak ditemukan")
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	response.OK(c, "Data berhasil diambil", user)
 }
 
 func (h *Handler) Login(c *gin.Context) {
 	var input LoginInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, "Data yang diinputkan tidak valid", err)
 		return
 	}
 
 	tokens, err := h.authService.Login(input)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		response.Unauthorized(c, "Login gagal email atau password anda salah!")
 		return
 	}
 
-	c.JSON(http.StatusOK, tokens)
+	response.OK(c, "Login berhasil!", tokens)
 }
 
 func (h *Handler) Refresh(c *gin.Context) {
@@ -67,80 +67,78 @@ func (h *Handler) Refresh(c *gin.Context) {
 	}
 	var input RefreshInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, "Data yang diinputkan tidak valid", err)
 		return
 	}
 
 	newAccessToken, err := h.authService.Refresh(input.RefreshToken)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		response.Unauthorized(c, "Token tidak valid")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"access_token": newAccessToken})
+	response.OK(c, "Token berhasil direfresh", gin.H{"access_token": newAccessToken})
 }
 
 func (h *Handler) Logout(c *gin.Context) {
 
 	var input LogoutInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, "Data yang dikirim tidak valid", err.Error())
 		return
 	}
 
 	err := h.authService.Logout(input.RefreshToken)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Logout gagal, silahkan coba lagi")
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
+	response.OK(c, "Logout berhasil", "")
 }
 
 func (h *Handler) GetProfile(c *gin.Context) {
 	userIDContext, exists := c.Get("userID") // ambil user id yg di kirim dari middleware
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context. Authorization may have failed."})
+		response.Unauthorized(c, "User tidak ditemukan, atau autentikasi gagal")
 		return
 	}
 
 	userID, ok := userIDContext.(int)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID in context is not of expected type"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tipe user id tidak sesuai"})
 		return
 	}
 
 	userProfile, err := h.userService.GetByID(userID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User profile not found"})
+		response.HandleError(c, err, "Profile user tidak ditemukan")
 		return
 	}
-	
-	c.JSON(http.StatusOK, userProfile)
+	response.OK(c, "Profile berhasil didapatkan", userProfile)
 }
 
 func (h *Handler) UpdateProfile(c *gin.Context) {
 	userIDContext, exists := c.Get("userID") // ambil user id yg di kirim dari middleware
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context. Authorization may have failed."})
+		response.Unauthorized(c, "User tidak ditemukan atau  atauautentikasi gagal")
 		return
 	}
 
 	userID, ok := userIDContext.(int)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID in context is not of expected type"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tipe user id tidak sesuai"})
 		return
 	}
 
 	var input UpdateProfileInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, "Data yang dikirim tidak valid", err.Error())
 		return
 	}
 
 	existingUser, err := h.userService.GetByID(userID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			response.NotFound(c, "user id tidak ditemukan")
 		return
 	}
 
@@ -149,10 +147,10 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 
 	updatedUser, err := h.userService.Update(existingUser)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c,err, "Data gagal di update")
 		return
 	}
-	c.JSON(http.StatusOK, updatedUser)
+	response.OK(c, "Profile berhasil diupdate", updatedUser) 
 }
 
 func (h *Handler) ForgotPassword(c *gin.Context) {
@@ -174,15 +172,14 @@ func (h *Handler) ForgotPassword(c *gin.Context) {
 func (h *Handler) ResetPassword(c *gin.Context) {
 	var input ResetPasswordInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, "Data yang diinputkan tidak valid", err)
 		return
 	}
 
 	err := h.authService.ResetPassword(input)
 	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		response.HandleError(c,err, "Password gagal di update")
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Password has been successfully reset"})
+	response.OK(c, "Password berhasil diupdate", "")
 }

@@ -1,9 +1,8 @@
 package user
 
 import (
-	"net/http"
 	"strconv"
-
+	"go-rest/pkg/response"
 	"github.com/gin-gonic/gin"
 	"go-rest/internal/service"
 )
@@ -19,31 +18,29 @@ func NewHandler(service *service.Service[User]) *Handler {
 func (h *Handler) GetUsers(c *gin.Context) {
 	users, err := h.service.GetAll()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Gagal mengambil data users")
 		return
 	}
-	c.JSON(http.StatusOK, users)
+	response.OK(c, "Data user berhasil diambil", users)
 }
 
 func (h *Handler) GetUser(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	user, err := h.service.GetByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		response.NotFound(c, "Gagal mengambil data users")
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	response.OK(c, "Data user berhasil diambil", user)
 }
 
 func (h *Handler) CreateUser(c *gin.Context) {
 	var input CreateUserInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, "Data user tidak sesuai validasi", err)
 		return
 	}
 
-	// Perbaikan 2: Mapping dari DTO (input) ke Model (User)
-	// Service kita mengharapkan model User, bukan CreateUserInput
 	userModel := User{
 		Name:  input.Name,
 		Email: input.Email,
@@ -51,10 +48,10 @@ func (h *Handler) CreateUser(c *gin.Context) {
 	}
 	newUser, err := h.service.Create(userModel)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Gagal membuat user")
 		return
 	}
-	c.JSON(http.StatusCreated, newUser)
+	response.Created(c, "Data user berhasil disimpan", newUser)
 }
 
 func (h *Handler) UpdateUser(c *gin.Context) {
@@ -62,37 +59,33 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 
 	var input UpdateUserInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, "Input tidak sesuai validasi", err)
 		return
 	}
 
-	// Perbaikan 3: Proses Update yang Benar
-	// 1. Ambil dulu data yang ada di database
 	existingUser, err := h.service.GetByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		response.NotFound(c, "id user tidak dapat ditemukan")
 		return
 	}
 
-	// 2. Ubah field-nya dengan data dari input
 	existingUser.Name = input.Name
 	existingUser.Email = input.Email
 
-	// 3. Kirim model yang sudah lengkap ke service
 	updatedUser, err := h.service.Update(existingUser)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Data user gagal diupdate")
 		return
 	}
-	c.JSON(http.StatusOK, updatedUser)
+	response.OK(c, "Data user berhasil diupdate", updatedUser)
 }
 
 func (h *Handler) DeleteUser(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	err := h.service.Delete(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		response.NotFound(c, "Gagal dihapus, user tidak ditemukan")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+	response.OK(c, "Data user berhasil di hapus", "")
 }

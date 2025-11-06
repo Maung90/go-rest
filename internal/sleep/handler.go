@@ -1,9 +1,9 @@
 package sleep
 
 import (
-	"net/http"
 	"strconv"
 	"time"
+	"go-rest/pkg/response"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,45 +19,45 @@ func (h *Handler) GetSleeps(c *gin.Context) {
 
 	userIDContext, exists := c.Get("userID") // ambil user id yg di kirim dari middleware
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context. Authorization may have failed."})
+		response.Unauthorized(c, "User ID tidak ditemukan di context.")
 		return
 	}
 	userID, ok := userIDContext.(int)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID in context is not of expected type"})
+		response.Unauthorized(c, "Tipe user id tidak sesuai")
 		return
 	}
-	activities, err := h.service.GetByUserID(userID)
+	sleeps, err := h.service.GetByUserID(userID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Gagal mengambil data tidur")
 		return
 	}
-	c.JSON(http.StatusOK, activities)
+	response.OK(c, "Data tidur berhasil diambil", sleeps)
 }
 func (h *Handler) GetSleep(c *gin.Context) {
 	userIDContext, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context. Authorization may have failed."})
+		response.Unauthorized(c, "User ID tidak ditemukan atau autentikasi gagal")
 		return
 	}
 	userID, ok := userIDContext.(int)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID in context is not of expected type"})
+		response.Unauthorized(c, "tipe user ID tidak sesuai")
 		return
 	}
 	id, _ := strconv.Atoi(c.Param("id"))
-	Sleep, err := h.service.GetByID(userID, id)
+	sleep, err := h.service.GetByID(userID, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Sleep not found"})
+		response.NotFound(c, "Data tidur gagal diambil")
 		return
 	}
-	c.JSON(http.StatusOK, Sleep)
+	response.OK(c, "Data tidur berhasil diambil", sleep)
 }
 
 func (h *Handler) CreateSleep(c *gin.Context) {
 	var input SleepInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, "Input tidak sesuai ", err)
 		return
 	}
 
@@ -65,13 +65,13 @@ func (h *Handler) CreateSleep(c *gin.Context) {
 
 	startTime, err := time.Parse(layout, input.SleepStart)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sleep_start format"})
+		response.HandleError(c, err, "format sleep_start salah")
 		return
 	}
 
 	endTime, err := time.Parse(layout, input.SleepEnd)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sleep_end format"})
+		response.HandleError(c, err, "format sleep_end salah")
 		return
 	}
 
@@ -85,10 +85,10 @@ func (h *Handler) CreateSleep(c *gin.Context) {
 
 	newSleep, err := h.service.Create(SleepModel)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Gagal menyimpan waktu tidur")
 		return
 	}
-	c.JSON(http.StatusCreated, newSleep)
+	response.Created(c, "Berhasil menyimpan data tidur", newSleep)
 }
 
 func (h *Handler) UpdateSleep(c *gin.Context) {
@@ -96,13 +96,13 @@ func (h *Handler) UpdateSleep(c *gin.Context) {
 
 	var input SleepInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	response.ValidationError(c,  "Data yang diinputkan tidak valid", err)
 		return
 	} 
 
 	existingSleep, err := h.service.GetByID(input.User_id, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Sleep not found"})
+		response.NotFound(c, "User id tidak ditemukan")
 		return
 	}
 
@@ -110,13 +110,13 @@ func (h *Handler) UpdateSleep(c *gin.Context) {
 
 	startTime, err := time.Parse(layout, input.SleepStart)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sleep_start format"})
+		response.HandleError(c, err, "format sleep_start salah")
 		return
 	}
 
 	endTime, err := time.Parse(layout, input.SleepEnd)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sleep_end format"})
+		response.HandleError(c, err, "format sleep_end salah")
 		return
 	}
 	duration := endTime.Sub(startTime).Hours()
@@ -128,56 +128,56 @@ func (h *Handler) UpdateSleep(c *gin.Context) {
 
 	updatedSleep, err := h.service.Update(existingSleep)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	response.HandleError(c, err, "Gagal update data tidur")
 		return
 	}
-	c.JSON(http.StatusOK, updatedSleep)
+	response.OK(c, "Data tidur berhasil diupdate", updatedSleep)
 }
 
 func (h *Handler) DeleteSleep(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	err := h.service.Delete(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Sleep not found"})
+		response.NotFound(c, "Data tidur tidak ditemukan atau error saat menghapus")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Sleep deleted successfully"})
+	response.OK(c, "Data tidur berhasil di hapus", "")
 }
 
 func (h *Handler) GetWeeklyStats(c *gin.Context) {
 	userIDContext, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context. Authorization may have failed."})
+		response.Unauthorized(c, "user id tidak ditemukan atau terjadi kesalahaan saat autentikasi")
 		return
 	}
 	userID, ok := userIDContext.(int)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID in context is not of expected type"})
+		response.Unauthorized(c, "Tipe user id tidak sesuai")
 		return
 	}
 	stats, err := h.service.GetWeeklyStats(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Data statistik gagal di ambil")
 		return
 	}
-	c.JSON(http.StatusOK, stats)
+	response.OK(c, "Data statistik berhasil di ambil", stats)
 }
 
 func (h *Handler) GetMonthlyStats(c *gin.Context) {
 	userIDContext, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context. Authorization may have failed."})
+		response.Unauthorized(c, "user id tidak ditemukan atau terjadi kesalahaan saat autentikasi")
 		return
 	}
 	userID, ok := userIDContext.(int)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID in context is not of expected type"})
+		response.Unauthorized(c, "Tipe user id tidak sesuai")
 		return
 	}
 	stats, err := h.service.GetMonthlyStats(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Data statistik gagal di ambil")
 		return
 	}
-	c.JSON(http.StatusOK, stats)
+	response.OK(c, "Data statistik berhasil di ambil", stats)
 }

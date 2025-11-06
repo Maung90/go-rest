@@ -3,7 +3,7 @@ package habit
 import (
 	"net/http"
 	"strconv"
-
+	"go-rest/pkg/response"
 	"go-rest/internal/service" 
 	"github.com/gin-gonic/gin"
 )
@@ -12,34 +12,33 @@ type Handler struct {
 	service *service.Service[Habit]
 }
 
-// Perbaikan 1: Tipe parameter 'service' harus sesuai dengan struct field
 func NewHandler(service *service.Service[Habit]) *Handler {
 	return &Handler{service: service}
 }
 
 func (h *Handler) GetHabits(c *gin.Context) {
-	activities, err := h.service.GetAll()
+	habits, err := h.service.GetAll()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Habit gagal diambil")
 		return
 	}
-	c.JSON(http.StatusOK, activities)
+	response.OK(c, "Habit berhasil Diambil", habits)
 }
 
 func (h *Handler) GetHabit(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	Habit, err := h.service.GetByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Habit not found"})
+		response.NotFound(c, "Habit tidak ditemukan")
 		return
 	}
-	c.JSON(http.StatusOK, Habit)
+	response.OK(c, "Habit berhasil Diambil", Habit)
 }
 
 func (h *Handler) CreateHabit(c *gin.Context) {
 	var input CreateHabitInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, "Habit gagal disimpan, data yang diinputkan tidak valid", err)
 		return
 	}
 
@@ -51,10 +50,10 @@ func (h *Handler) CreateHabit(c *gin.Context) {
 
 	newHabit, err := h.service.Create(HabitModel)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Habit gagal disimpan")
 		return
-	}
-	c.JSON(http.StatusCreated, newHabit)
+	} 
+	response.Created(c, "Habit berhasil disimpan", newHabit)
 }
 
 func (h *Handler) UpdateHabit(c *gin.Context) {
@@ -62,13 +61,13 @@ func (h *Handler) UpdateHabit(c *gin.Context) {
 
 	var input UpdateHabitInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c, "Habit gagal disimpan, data yang diinputkan tidak valid", err)
 		return
 	} 
 
 	existingHabit, err := h.service.GetByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Habit not found"})
+		response.NotFound(c, "Id habit tidak ditemukan")
 		return
 	}
 
@@ -78,18 +77,19 @@ func (h *Handler) UpdateHabit(c *gin.Context) {
 
 	updatedHabit, err := h.service.Update(existingHabit)
 	if err != nil {
+		response.HandleError(c, err, "Habit gagal disimpan")
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, updatedHabit)
+	response.Created(c, "Habit berhasil disimpan", updatedHabit)
 }
 
 func (h *Handler) DeleteHabit(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	err := h.service.Delete(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Habit not found"})
+		response.HandleError(c, err, "Habit gagal dihapus")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Habit deleted successfully"})
+	response.OK(c, "Habit berhasil dihapus", "")
 }

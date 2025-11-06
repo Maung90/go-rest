@@ -6,7 +6,7 @@ import (
 	"go-rest/internal/service"
 	"net/http"
 	"strconv"
-
+	"go-rest/pkg/response"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,14 +26,14 @@ func (h *Handler) CreateLogs(c *gin.Context) {
 	habit_id, _ := strconv.Atoi(c.Param("id"))
 
 	var input CreateHabitLogInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := c.ShouldBindJSON(&input); err != nil { 
+		response.ValidationError(c, "Log Habit gagal disimpan, data yang diinputkan tidak valid", err)
 		return
 	}
 
 	_, err := h.habitService.GetByID(habit_id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Habit not found"})
+		response.NotFound(c, "id habit tidak ditemukan")
 		return
 	}
 
@@ -43,24 +43,25 @@ func (h *Handler) CreateLogs(c *gin.Context) {
 
 	habitlog, err := h.habitLogService.CreateLogs(input)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c, err, "Log Habit gagal disimpan")
 		return
 	}
-	c.JSON(http.StatusCreated, habitlog)
+	response.Created(c, "Log habit berhasil disimpan", habitlog)
 }
 
 func (h *Handler) GetLogsByDate(c *gin.Context) {
 	var input GetHabitLogInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.ValidationError(c,"Data yang diinputkan tidak valid", err)
 		return
 	}
 	fmt.Println("DEBUG log_date:", input)
 
 	habitLogs, err := h.habitLogService.FindHabitLogs(input)
 	if err != nil {
+		response.NotFound(c, "habit log tidak ditemukan pada tanggal tersebut")
 		c.JSON(http.StatusNotFound, gin.H{"error": "Habit Logs not found for that date"})
 		return
 	}
-	c.JSON(http.StatusOK, habitLogs)
+	response.OK(c, "habit log berhasil diambil", habitLogs)
 }
