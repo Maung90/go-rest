@@ -129,5 +129,5 @@ func (h *Handler) DeleteStories(c *gin.Context) {
 			response.NotFound(c, "Data tidak ditemukan!")
 		return
 	}
-	response.OK(c, "Data berhasil diupdate", "")
+	response.OK(c, "Data berhasil Dihapus", "")
 }

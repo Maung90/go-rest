@@ -54,10 +54,10 @@ Mencatat aktivitas sehari-hari seperti bekerja, berolahraga, membaca, dsb.
 
 |  ✅  | Fitur                        | Endpoint (contoh)                        | Deskripsi                                                           |
 | :-: | ---------------------------- | ---------------------------------------- | ------------------------------------------------------------------- |
-|  ⬜  | Tambah catatan kegiatan      | `POST /api/v1/activities`                | Menyimpan aktivitas (contoh: “Bekerja 6 jam”, “Berjalan 30 menit”). |
-|  ⬜  | Lihat semua catatan kegiatan | `GET /api/v1/activities?date=YYYY-MM-DD` | Menampilkan aktivitas per hari.                                     |
-|  ⬜  | Update catatan kegiatan      | `PUT /api/v1/activities/{id}`            | Mengubah nama atau durasi aktivitas.                                |
-|  ⬜  | Hapus catatan kegiatan       | `DELETE /api/v1/activities/{id}`         | Menghapus catatan tertentu.                                         |
+|  ✅  | Tambah catatan kegiatan      | `POST /api/v1/activities`                | Menyimpan aktivitas (contoh: “Bekerja 6 jam”, “Berjalan 30 menit”). |
+|  ✅  | Lihat semua catatan kegiatan | `GET /api/v1/activities?date=YYYY-MM-DD` | Menampilkan aktivitas per hari.                                     |
+|  ✅  | Update catatan kegiatan      | `PUT /api/v1/activities/{id}`            | Mengubah nama atau durasi aktivitas.                                |
+|  ✅  | Hapus catatan kegiatan       | `DELETE /api/v1/activities/{id}`         | Menghapus catatan tertentu.                                         |
 
 ---
 

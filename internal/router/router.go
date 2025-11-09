@@ -89,6 +89,10 @@ func SetupRouter(
 		activityRoutes := protected.Group("activities")
 		{
 			activityRoutes.GET("/", activityHandler.GetAllActivities)
+			activityRoutes.GET(":id", activityHandler.GetActvitiesById)
+			activityRoutes.POST("/", activityHandler.SaveActivities)
+			activityRoutes.PUT("/:id", activityHandler.UpdateActivity)
+			activityRoutes.DELETE("/:id", activityHandler.DeleteActivity)
 		}
 		
 	}
