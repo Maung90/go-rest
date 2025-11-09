@@ -2,6 +2,7 @@ package main
 
 import (
 	"go-rest/internal/dailyStory"
+	"go-rest/internal/dashboard"
 	"go-rest/internal/habitLog"
 	"go-rest/internal/activity"
 	"go-rest/internal/service"
@@ -56,6 +57,11 @@ func main() {
 	activityService := activity.NewService(activityRepository)
 	activityHandler := activity.NewHandler(activityService)
 
+	// Service dan handler dashboard
+	dashboardService := dashboard.NewService(habitLogRepository, activityRepository, dailyStoryRepository, sleepRepository)
+	dashboardHandler := dashboard.NewHandler(dashboardService)
+
+
 	appRouter := router.SetupRouter(
 		authHandler,	
 		userHandler, 
@@ -64,6 +70,7 @@ func main() {
 		sleepHandler,
 		dailyStoryHandler,
 		activityHandler,
+		dashboardHandler,
 	)
 
 

@@ -15,6 +15,7 @@ type Repository interface {
 	Delete(id int) error
 	GetWeeklyStats(userID int) ([]SleepStat, error)
 	GetMonthlyStats(userID int) ([]SleepStat, error)
+	FindByDate(userID int, date string) ([]Sleep, error) 
 }
 
 type repository struct {
@@ -27,9 +28,9 @@ func NewRepository(db *sql.DB) Repository {
 
 func (r *repository) FindAll(userID int) ([]Sleep, error) {
 	builder := customsql.NewSQLBuilder(r.db, "sleep_logs").
-		Select("user_id", "sleep_start", "sleep_end", "duration_hours").
-		Where("user_id = ?", userID).
-		OrderBy("created_at DESC")
+	Select("user_id", "sleep_start", "sleep_end", "duration_hours").
+	Where("user_id = ?", userID).
+	OrderBy("created_at DESC")
 
 	rows, err := builder.Get()
 	if err != nil {
@@ -51,9 +52,9 @@ func (r *repository) FindAll(userID int) ([]Sleep, error) {
 
 func (r *repository) FindByID(userID, id int) (Sleep, error) {
 	builder := customsql.NewSQLBuilder(r.db, "sleep_logs").
-		Select("user_id", "sleep_start", "sleep_end", "duration_hours").
-		Where("id = ?", id).
-		Where("user_id = ?", userID)
+	Select("user_id", "sleep_start", "sleep_end", "duration_hours").
+	Where("id = ?", id).
+	Where("user_id = ?", userID)
 
 	rows, err := builder.Get()
 	if err != nil {
@@ -118,9 +119,9 @@ func (r *repository) Delete(id int) error {
 func (r *repository) GetWeeklyStats(userID int) ([]SleepStat, error) {
 	query := `
 	SELECT
-		CONCAT(YEAR(sleep_start), '-W', LPAD(WEEK(sleep_start, 1), 2, '0')) AS period,
-		SUM(duration_hours) AS total_hours,
-		AVG(duration_hours) AS avg_hours
+	CONCAT(YEAR(sleep_start), '-W', LPAD(WEEK(sleep_start, 1), 2, '0')) AS period,
+	SUM(duration_hours) AS total_hours,
+	AVG(duration_hours) AS avg_hours
 	FROM sleep_logs
 	WHERE user_id = ?
 	GROUP BY YEAR(sleep_start), WEEK(sleep_start, 1)
@@ -147,9 +148,9 @@ func (r *repository) GetWeeklyStats(userID int) ([]SleepStat, error) {
 func (r *repository) GetMonthlyStats(userID int) ([]SleepStat, error) {
 	query := `
 	SELECT
-		DATE_FORMAT(sleep_start, '%Y-%m') AS period,
-		SUM(duration_hours) AS total_hours,
-		AVG(duration_hours) AS avg_hours
+	DATE_FORMAT(sleep_start, '%Y-%m') AS period,
+	SUM(duration_hours) AS total_hours,
+	AVG(duration_hours) AS avg_hours
 	FROM sleep_logs
 	WHERE user_id = ?
 	GROUP BY YEAR(sleep_start), MONTH(sleep_start)
@@ -171,4 +172,29 @@ func (r *repository) GetMonthlyStats(userID int) ([]SleepStat, error) {
 		stats = append(stats, s)
 	}
 	return stats, nil
+}
+
+func (r *repository) FindByDate(userID int, date string) ([]Sleep, error) {
+
+	builder := customsql.NewSQLBuilder(r.db, "sleep_logs").
+	Select("sleep_start", "sleep_end", "duration_hours").
+	Where("sleep_end = ? AND user_id = ? ", date, userID).
+	OrderBy("created_at DESC")
+
+	rows, err := builder.Get()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var logs []Sleep
+	for rows.Next() {
+		var h Sleep
+		err := rows.Scan(&h.ID, &h.CreatedAt, &h.UpdatedAt, &h.SleepStart, &h.SleepEnd, &h.Duration)
+		if err != nil {
+			return nil, err
+		}
+		logs = append(logs, h)
+	}
+	return logs, nil
 }

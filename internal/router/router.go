@@ -3,6 +3,7 @@ package router
 import (
 	"go-rest/internal/dailyStory"
 	"go-rest/internal/middleware"
+	"go-rest/internal/dashboard"
 	"go-rest/internal/activity"
 	"go-rest/internal/habitLog"
 	"github.com/gin-gonic/gin"
@@ -21,6 +22,7 @@ func SetupRouter(
 	sleepHandler *sleep.Handler, 
 	dailyStoryHandler *dailyStory.Handler, 
 	activityHandler *activity.Handler, 
+	dashboardHandler *dashboard.Handler, 
 ) *gin.Engine {
 	router := gin.Default()
 
@@ -94,7 +96,12 @@ func SetupRouter(
 			activityRoutes.PUT("/:id", activityHandler.UpdateActivity)
 			activityRoutes.DELETE("/:id", activityHandler.DeleteActivity)
 		}
-		
+
+		dashboardRoutes := protected.Group("dashboard")
+		{
+			dashboardRoutes.GET("/", dashboardHandler.GetDashboard)
+			// dashboardRoutes.GET(":id", dashboardHandler.GetActvitiesById)
+		}
 	}
 
 	return router

@@ -53,7 +53,7 @@ func (r *repository) FindByDate(date string, userId int) ([]Activity, error) {
 
 	builder := sqlbuilder.NewSQLBuilder(r.db, "activities").
 	Select("user_id", "activity_date", "title", "duration_minutes", "notes").
-	Where("user_id = ? AND date = ?", userId, date).
+	Where("user_id = ? AND activity_date = ?", userId, date).
 	OrderBy("activity_date DESC")
 
 	rows, err := builder.Get()

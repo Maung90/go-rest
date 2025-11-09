@@ -10,6 +10,7 @@ import (
 type Repository interface {
 	CreateLogs(newHabitLog HabitLog) (HabitLog, error)
 	FindHabitLogs(date time.Time) ([]HabitLog, error)
+	FindDoneByDate(userID int, date string)([]HabitLog, error)
 	FindByID(id int) (HabitLog, error)
 }
 
@@ -23,8 +24,8 @@ func NewRepository(db *sql.DB) Repository {
 
 func (r *repository) FindByID(id int) (HabitLog, error) {
 	builder := customsql.NewSQLBuilder(r.db, "habit_logs").
-		Select("habit_id", "user_id", "log_date", "status").
-		Where("id = ?", id)
+	Select("habit_id", "user_id", "log_date", "status").
+	Where("id = ?", id)
 
 	rows, err := builder.Get()
 	if err != nil {
@@ -69,9 +70,34 @@ func (r *repository) FindHabitLogs(date time.Time) ([]HabitLog, error) {
 	formattedDate := date.Format("2006-01-02")
 
 	builder := customsql.NewSQLBuilder(r.db, "habit_logs").
-		Select("habit_id", "user_id", "log_date", "status").
-		Where("log_date = ?", formattedDate).
-		OrderBy("created_at DESC")
+	Select("habit_id", "user_id", "log_date", "status").
+	Where("log_date = ?", formattedDate).
+	OrderBy("created_at DESC")
+
+	rows, err := builder.Get()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var logs []HabitLog
+	for rows.Next() {
+		var h HabitLog
+		err := rows.Scan(&h.ID, &h.Created_at, &h.Updated_at, &h.Habit_id, &h.User_id, &h.Log_date, &h.Status)
+		if err != nil {
+			return nil, err
+		}
+		logs = append(logs, h)
+	}
+	return logs, nil
+}
+
+func (r *repository) FindDoneByDate(userID int, date string)([]HabitLog, error){
+
+	builder := customsql.NewSQLBuilder(r.db, "habit_logs").
+	Select("habit_id", "user_id", "log_date", "status").
+	Where("status = ? AND log_date = ? AND user_id = ?","done", date, userID).
+	OrderBy("created_at DESC")
 
 	rows, err := builder.Get()
 	if err != nil {

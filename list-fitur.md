@@ -81,7 +81,7 @@ Menyajikan ringkasan aktivitas dan kebiasaan pengguna.
 
 |  ✅  | Fitur                      | Endpoint (contoh)                             | Deskripsi                                                                       |
 | :-: | -------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------- |
-|  ⬜  | Ringkasan harian           | `GET /api/v1/dashboard/daily?date=YYYY-MM-DD` | Menampilkan habit yang diselesaikan, jam tidur, aktivitas, dan cerita hari itu. |
+|  ✅  | Ringkasan harian           | `GET /api/v1/dashboard/daily?date=YYYY-MM-DD` | Menampilkan habit yang diselesaikan, jam tidur, aktivitas, dan cerita hari itu. |
 |  ⬜  | Statistik mingguan/bulanan | `GET /api/v1/dashboard/summary?range=week`    | Menampilkan total habit done, rata-rata tidur, jumlah kegiatan, dan tren mood.  |
 
 ---
